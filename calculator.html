@@ -20,6 +20,12 @@
     <h2>Welcome to Elevia ✨</h2>
     <input type="text" id="name" placeholder="Full Name" class="popup-input" />
     <input type="email" id="email" placeholder="Email" class="popup-input" />
+<label style="font-size:13px; text-align:left; display:block; margin:10px;">
+  <input type="checkbox" id="acceptTnc" />
+  I agree to the 
+  <a href="Elevia - T&C.pdf" target="_blank">Terms & Conditions</a>
+</label>
+
     <button onclick="signInUser()" class="popup-btn">Continue</button>
   </div>
 </div>
@@ -88,7 +94,7 @@
       <label>❤️ Emotional Energy (°)
         <select id="phi">
           <option value="">— Select —</option>
-          <option value="0">0° (Low)</option>
+          <option value="0">0° (Low	)</option>
           <option value="180">180° (Moderate)</option>
           <option value="360">360° (High)</option>
         </select>
@@ -122,33 +128,89 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // -------- AUTH --------
-async function signInUser() {
-  const name = document.getElementById('name').value.trim();
-  const email = document.getElementById('email').value.trim();
-  if (!name || !email) return alert("Please enter name and email.");
-
-  localStorage.setItem("userEmail", email);
-  localStorage.setItem("userName", name);
-
-  const { error } = await client.from("Users").upsert([{ name, email }]);
-  if (error) console.error("User Insert Error:", error);
-
-  document.getElementById('auth-popup').style.display = 'none';
-  document.getElementById('signOutBtn').style.display = 'inline-block';
-  if (email === "admin@elevia.com") document.getElementById('adminPanel').style.display = 'block';
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
 
-// Show popup only first time
-window.onload = function() {
-  const user = localStorage.getItem("userEmail");
-  if (user) {
-    document.getElementById('auth-popup').style.display = 'none';
-    document.getElementById('signOutBtn').style.display = 'inline-block';
-    if (user === "admin@elevia.com") document.getElementById('adminPanel').style.display = 'block';
+async function signInUser() {
+  console.log("signInUser triggered");
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const accepted = document.getElementById("acceptTnc").checked;
+
+  // 1️⃣ Basic validation
+  if (!name || !email) {
+    alert("Please enter name and email.");
+    return;
+  }
+
+  // 2️⃣ Email format validation
+  if (!isValidEmail(email)) {
+    alert("Please enter a valid email address (example: name@email.com).");
+    return;
+  }
+
+  // 3️⃣ T&C validation
+  if (!accepted) {
+    alert("Please accept the Terms & Conditions to continue.");
+    return;
+  }
+
+  // 4️⃣ Save locally FIRST (so UI never blocks)
+  localStorage.setItem("userName", name);
+  localStorage.setItem("userEmail", email);
+
+  // 5️⃣ Single Supabase upsert (WITH T&C)
+  const { error } = await client
+    .from("Users")
+    .upsert(
+      [{
+        name,
+        email,
+        accepted_tnc: true,
+        accepted_tnc_at: new Date().toISOString()
+      }],
+      { onConflict: "email" }
+    );
+
+
+  // 6️⃣ Handle Supabase error safely (do NOT block user)
+  if (error) {
+    console.warn(
+      "Supabase insert skipped (likely RLS / anon key):",
+      error.message
+    );
+    // DO NOT return — login must still succeed
+  }
+
+  // 7️⃣ UI success
+  document.getElementById("auth-popup").style.display = "none";
+  document.getElementById("signOutBtn").style.display = "inline-block";
+
+  if (email === "admin@elevia.com") {
+    document.getElementById("adminPanel").style.display = "block";
+  }
+}
+
+// ---------- SESSION RESTORE ----------
+window.onload = () => {
+  const email = localStorage.getItem("userEmail");
+
+  if (email && isValidEmail(email)) {
+    document.getElementById("auth-popup").style.display = "none";
+    document.getElementById("signOutBtn").style.display = "inline-block";
+
+    if (email === "admin@elevia.com") {
+      document.getElementById("adminPanel").style.display = "block";
+    }
   } else {
-    document.getElementById('auth-popup').style.display = 'flex';
+    document.getElementById("auth-popup").style.display = "flex";
   }
 };
+
+
+  
 
 document.getElementById("signOutBtn").onclick = () => {
   localStorage.clear();
@@ -157,7 +219,11 @@ document.getElementById("signOutBtn").onclick = () => {
 
 // -------- CALCULATE --------
 document.getElementById("calculateBtn").onclick = async () => {
-  const name = localStorage.getItem("userName");
+const accepted_tnc = true;
+const accepted_tnc_at = new Date().toISOString();
+const created_at = new Date().toISOString();
+
+   const name = localStorage.getItem("userName") || "there";
   const email = localStorage.getItem("userEmail");
 
   const intention = document.getElementById("intention").value;
@@ -167,28 +233,137 @@ document.getElementById("calculateBtn").onclick = async () => {
   const patience = document.getElementById("patience").value;
   const phi = parseInt(document.getElementById("phi").value);
 
-  if (!intention || !timing || !action || !clarity || !patience || !phi) {
-    alert("Please fill out all fields.");
-    return;
-  }
+  if (
+  !intention ||
+  isNaN(timing) ||
+  isNaN(action) ||
+  isNaN(clarity) ||
+  !patience ||
+  isNaN(phi)
+) {
+  alert("Please fill out all fields.");
+  return;
+}
 
-  let patienceVal = patience === "High" ? 10 : patience === "Medium" ? 6 : 3;
-  let score = Math.round((timing + action + clarity + patienceVal + phi / 36) / 5);
 
-  let message = "";
-  if (score >= 8) message = `✨ ${name}, your manifestation energy for ${intention} is radiating strongly! Keep believing — the universe is aligning in your favor.`;
-  else if (score >= 5) message = `🌱 ${name}, you're halfway there with your ${intention} manifestation. Reflect, realign your focus, and watch how things shift.`;
-  else message = `💫 ${name}, your energy feels scattered right now for ${intention}. Take small consistent steps and rebuild clarity — the spark will return.`;
+let patienceVal = patience === "High" ? 10 : patience === "Medium" ? 6 : 3;
+let score = Math.round((timing + action + clarity + patienceVal + phi / 36) / 5);
 
-  document.getElementById("result").style.display = "block";
-  document.getElementById("result").innerHTML = `<h3>Your Manifestation Score: ${score}/10</h3><p>${message}</p>`;
+// ---------------- PERSONA ----------------
+let persona = "";
+if (score >= 8) {
+  persona = "The Aligned Accelerator";
+} else if (score >= 5) {
+  persona = "The Steady Realigner";
+} else {
+  persona = "The Inner Rebuilder";
+}
 
-  const created_at = new Date().toISOString();
-  const { error } = await client.from("Calculations").insert([{ 
-    user_email: email, intention, timing, action, clarity, patience, phi, score, result_message: message, created_at 
-  }]);
+// ---------------- WEAKEST AREA ----------------
+let weakest = "clarity";
+if (timing <= action && timing <= clarity) weakest = "timing";
+else if (action <= timing && action <= clarity) weakest = "action";
 
-  if (error) console.error("Calculation Insert Error:", error);
+let weaknessMessage = "";
+if (weakest === "timing") {
+  weaknessMessage =
+    "Right now, it’s not a lack of desire — it’s about allowing the timing to mature rather than forcing momentum.";
+} else if (weakest === "action") {
+  weaknessMessage =
+    "Your intention is present, but consistent aligned action is where the real shift can happen.";
+} else {
+  weaknessMessage =
+    "Your energy is active, but refining clarity will help the universe respond more precisely.";
+}
+
+// ---------------- EMOTION + PATIENCE ----------------
+let emotionMessage = "";
+if (phi === 360 && patience === "Low") {
+  emotionMessage =
+    "Your emotional energy is intense, but impatience may be creating internal friction.";
+} else if (phi === 360 && patience === "High") {
+  emotionMessage =
+    "You’re emotionally invested while remaining grounded — this is a powerful combination.";
+} else if (phi === 180) {
+  emotionMessage =
+    "Your emotional energy is balanced, suggesting steady progress rather than dramatic shifts.";
+} else {
+  emotionMessage =
+    "Low emotional charge suggests this intention may need deeper personal meaning to activate momentum.";
+}
+
+// ---------------- FINAL MESSAGE ----------------
+let message = `
+
+
+  <p><strong>Dear ${name},</strong></p>
+
+  <p>
+    Your current manifestation score for <strong>${intention}</strong> is
+    <strong>${score}/10</strong>.
+  </p>
+
+  <div style="
+    display:inline-block;
+    margin:18px 0 24px;
+    padding:14px 28px;
+    background:#eef2ff;
+    color:#4338ca;
+    font-weight:700;
+    font-size:1.20rem;
+    border-radius:999px;
+   display: inline-block;
+letter-spacing:0.3px;
+  box-shadow:0 6px 16px rgba(79,70,229,0.18);
+
+
+  ">
+    Persona: ${persona}
+  </div>
+
+  <p>${weaknessMessage}</p>
+
+  <p>${emotionMessage}</p>
+
+  <p>
+    This phase isn’t about doing more — it’s about aligning more intentionally.
+  </p>
+
+  <div style="
+    margin-top:16px;
+    padding:12px;
+    background:#f0f4ff;
+    border-left:4px solid #4f46e5;
+    border-radius:6px;
+  ">
+    Want deeper clarity tailored specifically to you?
+    <strong>
+      <a href="details.html" style="color:#4f46e5;text-decoration:underline;">
+        Go to Consulting
+      </a>
+    </strong>
+  </div>
+`;
+
+document.getElementById("result").style.display = "block";
+document.getElementById("result").innerHTML = message;
+
+// ---------------- STORE IN SUPABASE ----------------
+  
+  await client.from("Calculations").insert([{
+    user_email: email,
+    intention,
+    timing,
+    action,
+    clarity,
+    patience,
+    phi,
+    score,
+    result_message: message.replace(/<[^>]+>/g, ""),
+    accepted_tnc,
+  accepted_tnc_at,
+ created_at
+}]);
 };
 
 // -------- RESET --------
