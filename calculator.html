@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Elevia — Calculator</title>
+  <title>Elevia AI— Calculator</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 <header class="site-header">
-  <h1 class="site-title">Elevia</h1>
+  <h1 class="site-title">Elevia AI</h1>
   <button id="signOutBtn" class="signout-btn" style="display:none;">Sign Out</button>
 </header>
 
@@ -188,7 +188,7 @@ async function signInUser() {
   document.getElementById("auth-popup").style.display = "none";
   document.getElementById("signOutBtn").style.display = "inline-block";
 
-  if (email === "admin@elevia.com") {
+  if (email === "admin@eleviaai.com") {
     document.getElementById("adminPanel").style.display = "block";
   }
 }
@@ -201,7 +201,7 @@ window.onload = () => {
     document.getElementById("auth-popup").style.display = "none";
     document.getElementById("signOutBtn").style.display = "inline-block";
 
-    if (email === "admin@elevia.com") {
+    if (email === "admin@eleviaai.com") {
       document.getElementById("adminPanel").style.display = "block";
     }
   } else {
@@ -386,7 +386,7 @@ document.getElementById("downloadDataBtn").onclick = async () => {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "Elevia_Calculations.csv";
+  a.download = "Elevia AI_Calculations.csv";
   a.click();
 };
 </script>
