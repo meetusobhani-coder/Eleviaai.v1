@@ -7,78 +7,78 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
-  <style>
+    <style>
      .cards-grid {
   flex-wrap: wrap;
 };
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 36px; 
+      gap: 36px;
       margin-top: 40px;
     }
 
     .card {
-      margin:8px;
+      margin: 8px;
       background: linear-gradient(135deg, #f8faff, #eef2ff);
-      padding:20px;
-      border-radius:16px;
-      cursor:pointer;
-      box-shadow:0 8px 22px rgba(0,0,0,0.08);
-      transition:transform .2s, box-shadow .2s;
+      padding: 20px;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+      transition: transform .2s, box-shadow .2s;
     }
 
     .card:hover {
-      transform:translateY(-4px);
-      box-shadow:0 12px 28px rgba(0,0,0,0.12);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
     }
 
     .popup-overlay {
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.6);
-      display:none;
-      justify-content:center;
-      align-items:center;
-      z-index:1000;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
 
     .popup-box {
-      background:#fff;
-      padding:24px;
-      width:80%;
-      max-width:400px;
-      border-radius:18px;
-      text-align:left;
+      background: #fff;
+      padding: 24px;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 18px;
+      text-align: left;
     }
 
     .popup-input {
-      width:100%;
+      width: 100%;
       margin: 12px 0;
-      padding:10px;
-      border-radius:10px;
-      border:1px solid #ddd;
-      font-family:inherit;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      font-family: inherit;
     }
 
     .popup-btn {
-      width:100%;
-      margin-top:12px;
-      padding:12px;
-      background:#6366f1;
-      color:#fff;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      font-weight:600;
+      width: 100%;
+      margin-top: 12px;
+      padding: 12px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
     }
 
     .popup-btn.secondary {
-      background:#999;
+      background: #999;
     }
   </style>
 </head>
 
 <body>
+
 <header class="site-header">
   <h1 class="site-title">Elevia AI</h1>
 </header>
@@ -92,9 +92,7 @@
     </p>
   </section>
 
-  <!-- CONSULTING CARDS -->
   <section class="cards-grid">
-
     <div class="card" onclick="openLeadForm('Personalized Manifestation Report')">
       <h3>✨ Personalized Manifestation Report</h3>
       <p>Deep analysis of your intention, timing, and alignment.</p>
@@ -119,7 +117,6 @@
       <h3>❤️ Emotional & Intuitive Support</h3>
       <p>Strengthen intuition and emotional awareness.</p>
     </div>
-
   </section>
 
   <div class="cta" style="text-align:center; margin-top:30px;">
@@ -131,7 +128,6 @@
 <footer class="site-footer">
   <p>© 2025 Elevia AI</p>
 </footer>
-
 
 <!-- LEAD CAPTURE MODAL -->
 <div id="leadModal" class="popup-overlay">
@@ -147,15 +143,22 @@
 
     <button class="popup-btn" onclick="submitLead()">Submit Request</button>
     <button class="popup-btn secondary" onclick="closeLeadForm()">Cancel</button>
-<p class="sla-text">
+
+    <p class="sla-text">
       Standard SLA for responses: 24–48 hours (Mon–Fri, 9 AM – 6 PM IST)
     </p>
   </div>
 </div>
 
+<!-- EMAILJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+<script>
+  (function () {
+    emailjs.init("uoIEERvWpk3Oh20kI");
+  })();
+</script>
 
-
-
+<!-- MAIN SCRIPT -->
 <script>
 const SUPABASE_URL = "https://dvvktlngsiqerhsikfna.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmt0bG5nc2lxZXJoc2lrZm5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTI5ODksImV4cCI6MjA3ODQyODk4OX0.IGIeZLmEWwUsof-Fj_vIAHhhlvIFN-yjVjHsJHluBcM";
@@ -165,8 +168,7 @@ let selectedService = "";
 
 function openLeadForm(service) {
   selectedService = service;
-  document.getElementById("leadTitle").innerText =
-    `Request for: ${service}`;
+  document.getElementById("leadTitle").innerText = `Request for: ${service}`;
   document.getElementById("leadModal").style.display = "flex";
 }
 
@@ -177,6 +179,8 @@ function closeLeadForm() {
 async function submitLead() {
   const name = document.getElementById("leadName").value.trim();
   const email = document.getElementById("leadEmail").value.trim();
+  const phone = document.getElementById("leadPhone").value || "N/A";
+  const intention = document.getElementById("leadIntention").value || "N/A";
 
   if (!name || !email) {
     alert("Name and email are required.");
@@ -186,24 +190,34 @@ async function submitLead() {
   const payload = {
     name,
     email,
-    phone: document.getElementById("leadPhone").value || null,
+    phone,
     address: document.getElementById("leadAddress").value || null,
-    intention: document.getElementById("leadIntention").value || null,
+    intention,
     notes: document.getElementById("leadNotes").value || null,
     source_title: selectedService || null
   };
-console.log("Submitting lead:",payload);
 
   const { error } = await client
     .from("Consulting_Leads")
     .insert([payload]);
 
   if (error) {
-console.error("Supabase error:",error);
-    alert(error.message);	
-    
+    alert(error.message);
+    console.error(error);
     return;
   }
+
+  await emailjs.send(
+  "service_eleviaai_outlook",
+    "template_t0bdvcu",
+    {
+      name,
+      email,
+      service: selectedService || "N/A",
+      phone,
+      intention
+    }
+  );
 
   alert("Thank you! We’ll reach out to you shortly.");
   closeLeadForm();
