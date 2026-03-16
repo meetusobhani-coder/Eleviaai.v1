@@ -11,6 +11,7 @@
 <body>
 <header class="site-header">
   <h1 class="site-title">Elevia AI</h1>
+ <span class="beta-badge">BETA</span>
   <button id="signOutBtn" class="signout-btn" style="display:none;">Sign Out</button>
 </header>
 
@@ -362,7 +363,8 @@ document.getElementById("result").innerHTML = message;
     result_message: message.replace(/<[^>]+>/g, ""),
     accepted_tnc,
   accepted_tnc_at,
- created_at
+ created_at,
+name
 }]);
 };
 
