@@ -3,63 +3,253 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+ <span class="beta-badge">BETA</span>
   <title>Elevia AI — Premium Services</title>
   <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <style>
-     .cards-grid {
-  flex-wrap: wrap;
-};
+  <style>
+/* ===== POLISHED FORM LOOK FOR DETAILS MODALS ===== */
+
+/* Overlay stays the same */
+.details-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55); /* softer dark */
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+/* Modal container */
+.details-box{
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.22);
+  position: relative;
+  box-sizing: border-box;
+
+  padding: 22px 20px;
+}
+
+/* Title */
+.details-box h3{
+  margin: 0 44px 14px 0; /* leave space for X */
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: 0.2px;
+}
+
+/* Description text */
+.details-box p{
+  margin: -6px 0 14px 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+/* Inputs + textarea */
+.details-input,
+.details-box textarea{
+  width: 100% !important;
+  display: block;
+  box-sizing: border-box;
+
+  padding: 12px 12px;
+  margin: 10px 0;
+
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;  /* subtle border */
+  background: #f9fafb;        /* soft fill */
+  color: #111827;
+
+  font-size: 0.98rem;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+/* Textarea height */
+.details-box textarea{
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Focus state */
+.details-input:focus,
+.details-box textarea:focus{
+  background: #ffffff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.18);
+}
+
+/* Placeholder */
+.details-input::placeholder,
+.details-box textarea::placeholder{
+  color: #9ca3af;
+}
+
+/* Checkbox line */
+.tnc-line{
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 10px;
+  color: #374151;
+  font-size: 0.92rem;
+}
+.tnc-line input[type="checkbox"]{
+  margin-top: 3px;
+}
+.tnc-line a{
+  color: #4f46e5;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+/* Buttons */
+.details-btn{
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 14px;
+
+  border: none;
+  border-radius: 14px;
+
+  background: linear-gradient(90deg,#6366f1,#4f46e5);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1rem;
+
+  cursor: pointer;
+  transition: transform .08s ease, filter .2s ease;
+}
+.details-btn:hover{ filter: brightness(1.03); }
+.details-btn:active{ transform: translateY(1px); }
+
+.details-btn.secondary{
+  background: #9ca3af;
+  margin-top: 10px;
+}
+.details-btn.secondary:hover{ filter: brightness(1.02); }
+
+/* Close X */
+.modal-x{
+  position: absolute;
+  top: 12px;
+  right: 12px;
+
+  width: 40px;
+  height: 40px;
+
+  border-radius: 14px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+
+  color: #111827;
+  font-size: 20px;
+  cursor: pointer;
+
+  display: grid;
+  place-items: center;
+
+  transition: background .15s ease, transform .08s ease;
+}
+.modal-x:hover{ background: #f3f4f6; }
+.modal-x:active{ transform: translateY(1px); }
+
+/* SLA text */
+.sla-text{
+  margin-top: 14px;
+margin-bottom: 10px
+  color: #6b7280;
+ padding-top: 7px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+
+    /* ✅ Cards grid spacing */
+    .cards-grid{
+      display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 36px;
+      gap: 40px;
+      row-gap: 7
+0px;
       margin-top: 40px;
+      margin-bottom: 32px;
+      justify-items: center;
+      align-items: stretch;
     }
 
-    .card {
-      margin: 8px;
+    /* ✅ Cards */
+    .card{
+      width: 100%;
+      max-width: 320px;
+      margin: 0;
       background: linear-gradient(135deg, #f8faff, #eef2ff);
-      padding: 20px;
+      padding: 18px;
       border-radius: 16px;
       cursor: pointer;
       box-shadow: 0 8px 22px rgba(0,0,0,0.08);
       transition: transform .2s, box-shadow .2s;
+      text-align: left;
     }
-
-    .card:hover {
+    .card:hover{
       transform: translateY(-4px);
       box-shadow: 0 12px 28px rgba(0,0,0,0.12);
     }
 
-    .popup-overlay {
+    /* ✅ IMPORTANT: Use unique modal classes to avoid conflict with style.css (.popup-overlay is display:flex there) */
+    .details-overlay{
       position: fixed;
       inset: 0;
       background: rgba(0,0,0,0.6);
-      display: none;
+      display: none;               /* ✅ hidden by default */
       justify-content: center;
       align-items: center;
       z-index: 1000;
+      padding: 16px;
     }
 
-    .popup-box {
+    .details-box{
       background: #fff;
       padding: 24px;
-      width: 80%;
-      max-width: 400px;
+      width: 100%;
+      max-width: 520px;
       border-radius: 18px;
       text-align: left;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.18);
+      position: relative;
+      box-sizing: border-box;
+height: 95vh;
+max-height: 95vh;     /* keeps it inside viewport */
+  overflow-y: auto;       /* modal content scrolls INSIDE */
+}
+
     }
 
-    .popup-input {
+    .details-input{
       width: 100%;
-      margin: 12px 0;
+      margin: 10px 0;
       padding: 10px;
       border-radius: 10px;
       border: 1px solid #ddd;
       font-family: inherit;
+      box-sizing: border-box;
+      min-height: 42px;
     }
+    textarea.details-input{ min-height: 90px; resize: vertical; }
 
-    .popup-btn {
+    .details-btn{
       width: 100%;
       margin-top: 12px;
       padding: 12px;
@@ -70,159 +260,330 @@
       cursor: pointer;
       font-weight: 600;
     }
+    .details-btn.secondary{ background: #9ca3af; }
 
-    .popup-btn.secondary {
-      background: #999;
+    .modal-x{
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 22px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #374151;
     }
+
+    .sla-text{
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-top: 10px;
+    }
+
+    .tnc-line{
+      font-size: 13px;
+      display: block;
+      margin-top: 10px;
+      color: #374151;
+    }
+    .tnc-line a{ color: #4f46e5; text-decoration: underline; }
   </style>
 </head>
 
 <body>
+  <header class="site-header">
+    <h1 class="site-title">Elevia AI</h1>
+  </header>
 
-<header class="site-header">
-  <h1 class="site-title">Elevia AI</h1>
-</header>
+  <main class="main-center">
+    <section class="intro-section">
+      <h2>Premium Services</h2>
+      <p>
+        Our team at Elevia AI is here to guide you through your manifestation journey.
+        Select a service below to request a personalized consultation.
+      </p>
+    </section>
 
-<main class="main-center">
-  <section class="intro-section">
-    <h2>Premium Services</h2>
-    <p>
-      Our team at Elevia AI is here to guide you through your manifestation journey.
-      Select a service below to request a personalized consultation.
-    </p>
-  </section>
+    <section class="cards-grid">
 
-  <section class="cards-grid">
-    <div class="card" onclick="openLeadForm('Personalized Manifestation Report')">
-      <h3>✨ Personalized Manifestation Report</h3>
-      <p>Deep analysis of your intention, timing, and alignment.</p>
+   <div class="card" onclick="openCoachForm()">
+        <h3>🤝 Want to be a Partner?</h3>
+        <p>Coach with Elevia AI — apply to join our partner network.</p>
+      </div>
+      <div class="card" onclick="openLeadForm('Personalized Manifestation Report')">
+        <h3>✨ Personalized Manifestation Report</h3>
+        <p>Deep analysis of your intention, timing, and alignment.</p>
+      </div>
+
+      <div class="card" onclick="openLeadForm('Goal Alignment Analysis')">
+        <h3>⏳ Goal Alignment Analysis</h3>
+        <p>Assess how well your actions support your goals.</p>
+      </div>
+
+      <div class="card" onclick="openLeadForm('Clarity & Milestone Mapping')">
+        <h3>🎯 Clarity & Milestone Mapping</h3>
+        <p>Break goals into actionable, aligned milestones.</p>
+      </div>
+
+      <div class="card" onclick="openLeadForm('Patience & Energy Coaching')">
+        <h3>🌈 Patience & Energy Coaching</h3>
+        <p>Maintain emotional balance and consistent momentum.</p>
+      </div>
+
+      <div class="card" onclick="openLeadForm('Emotional & Intuitive Support')">
+        <h3>❤️ Emotional & Intuitive Support</h3>
+        <p>Strengthen intuition and emotional awareness.</p>
+      </div>
+
+   
+    </section>
+
+    <div class="cta" style="text-align:center; margin-top:30px;">
+      <a class="btn" href="calculator.html">Back to Calculator</a>
+      <a class="btn" href="index.html">Back to Home</a>
     </div>
+  </main>
 
-    <div class="card" onclick="openLeadForm('Goal Alignment Analysis')">
-      <h3>⏳ Goal Alignment Analysis</h3>
-      <p>Assess how well your actions support your goals.</p>
+  <footer class="site-footer">
+    <p>© 2025 Elevia AI</p>
+  </footer>
+
+  <!-- =======================
+       LEAD MODAL
+  ======================== -->
+  <div id="leadModal" class="details-overlay">
+    <div class="details-box">
+      <button class="modal-x" onclick="closeLeadForm()" aria-label="Close">✕</button>
+
+      <h3 id="leadTitle">Consulting Request</h3>
+      <input id="leadName" class="details-input" placeholder="Full Name *" />
+      <input id="leadEmail" class="details-input" placeholder="Email *" />
+      <input id="leadPhone" class="details-input" placeholder="Phone Number (optional)" />
+      <input id="leadAddress" class="details-input" placeholder="City / Address (optional)" />
+      <input id="leadIntention" class="details-input" placeholder="Your Intention (optional)" />
+      <textarea id="leadNotes" class="details-input" placeholder="Anything else you'd like to share? (optional)"></textarea>
+
+      <button class="details-btn" onclick="submitLead()">Submit Request</button>
+      <button class="details-btn secondary" onclick="closeLeadForm()">Cancel</button>
+
+      <p class="sla-text">Standard SLA for responses: 24–48 hours (Mon–Fri, 9 AM – 6 PM IST)</p>
     </div>
-
-    <div class="card" onclick="openLeadForm('Clarity & Milestone Mapping')">
-      <h3>🎯 Clarity & Milestone Mapping</h3>
-      <p>Break goals into actionable, aligned milestones.</p>
-    </div>
-
-    <div class="card" onclick="openLeadForm('Patience & Energy Coaching')">
-      <h3>🌈 Patience & Energy Coaching</h3>
-      <p>Maintain emotional balance and consistent momentum.</p>
-    </div>
-
-    <div class="card" onclick="openLeadForm('Emotional & Intuitive Support')">
-      <h3>❤️ Emotional & Intuitive Support</h3>
-      <p>Strengthen intuition and emotional awareness.</p>
-    </div>
-  </section>
-
-  <div class="cta" style="text-align:center; margin-top:30px;">
-    <a class="btn" href="calculator.html">Back to Calculator</a>
-    <a class="btn" href="index.html">Back to Home</a>
   </div>
-</main>
 
-<footer class="site-footer">
-  <p>© 2025 Elevia AI</p>
-</footer>
-
-<!-- LEAD CAPTURE MODAL -->
-<div id="leadModal" class="popup-overlay">
-  <div class="popup-box">
-    <h3 id="leadTitle">Consulting Request</h3>
-
-    <input id="leadName" class="popup-input" placeholder="Full Name" />
-    <input id="leadEmail" class="popup-input" placeholder="Email" />
-    <input id="leadPhone" class="popup-input" placeholder="Phone Number" />
-    <input id="leadAddress" class="popup-input" placeholder="City / Address" />
-    <input id="leadIntention" class="popup-input" placeholder="Your Intention" />
-    <textarea id="leadNotes" class="popup-input" placeholder="Anything else you'd like to share?"></textarea>
-
-    <button class="popup-btn" onclick="submitLead()">Submit Request</button>
-    <button class="popup-btn secondary" onclick="closeLeadForm()">Cancel</button>
-
-    <p class="sla-text">
-      Standard SLA for responses: 24–48 hours (Mon–Fri, 9 AM – 6 PM IST)
-    </p>
-  </div>
+  <!-- =======================
+       COACH MODAL
+  ======================== -->
+  <div id="coachModal" class="details-overlay">
+    <div class="details-box">
+<!-- ✅ Sticky close bar (always visible on mobile) -->
+<div class="details-modal-bar">
+  <div class="details-modal-title">Coach / Partner Signup</div>
+  
 </div>
+      <button class="modal-x" onclick="closeCoachForm()" aria-label="Close">✕</button>
 
-<!-- EMAILJS -->
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-  (function () {
-    emailjs.init("uoIEERvWpk3Oh20kI");
-  })();
-</script>
 
-<!-- MAIN SCRIPT -->
-<script>
-const SUPABASE_URL = "https://dvvktlngsiqerhsikfna.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmt0bG5nc2lxZXJoc2lrZm5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTI5ODksImV4cCI6MjA3ODQyODk4OX0.IGIeZLmEWwUsof-Fj_vIAHhhlvIFN-yjVjHsJHluBcM";
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      <p style="margin: 6px 0 14px; color:#6b7280; font-size:0.95rem;">
+        Apply to join Elevia AI as a coach/partner. We’ll review and reach out.
+      </p>
 
-let selectedService = "";
+      <input id="coachName" class="details-input" placeholder="Full Name *" />
+      <input id="coachEmail" class="details-input" placeholder="Email *" />
+      <input id="coachPhone" class="details-input" placeholder="Phone Number (optional)" />
+      <input id="coachCity" class="details-input" placeholder="City (optional)" />
 
-function openLeadForm(service) {
-  selectedService = service;
-  document.getElementById("leadTitle").innerText = `Request for: ${service}`;
-  document.getElementById("leadModal").style.display = "flex";
-}
+      <input id="coachSpecialty" class="details-input" placeholder="Specialty (e.g., mindset, wellness, career)" />
+      <input id="coachExperience" class="details-input" placeholder="Years of experience (e.g., 3)" />
+      <input id="coachWebsite" class="details-input" placeholder="Website / Instagram / LinkedIn (optional)" />
+      <textarea id="coachBio" class="details-input" placeholder="Short bio (optional)"></textarea>
 
-function closeLeadForm() {
-  document.getElementById("leadModal").style.display = "none";
-}
+      <label class="tnc-line">
+        <input type="checkbox" id="coachTnc" />
+        I agree to the <a href="Elevia - T&C.pdf" target="_blank">Terms &amp; Conditions</a>
+      </label>
 
-async function submitLead() {
-  const name = document.getElementById("leadName").value.trim();
-  const email = document.getElementById("leadEmail").value.trim();
-  const phone = document.getElementById("leadPhone").value || "N/A";
-  const intention = document.getElementById("leadIntention").value || "N/A";
+      <button class="details-btn" onclick="submitCoach()">Submit Application</button>
+      <button class="details-btn secondary" onclick="closeCoachForm()">Cancel</button>
+    </div>
+  </div>
 
-  if (!name || !email) {
-    alert("Name and email are required.");
-    return;
-  }
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script>
+    (function () { emailjs.init("uoIEERvWpk3Oh20kI"); })();
+  </script>
 
-  const payload = {
-    name,
-    email,
-    phone,
-    address: document.getElementById("leadAddress").value || null,
-    intention,
-    notes: document.getElementById("leadNotes").value || null,
-    source_title: selectedService || null
-  };
+  <script>
+    const SUPABASE_URL = "https://dvvktlngsiqerhsikfna.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmt0bG5nc2lxZXJoc2lrZm5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTI5ODksImV4cCI6MjA3ODQyODk4OX0.IGIeZLmEWwUsof-Fj_vIAHhhlvIFN-yjVjHsJHluBcM";
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const { error } = await client
-    .from("Consulting_Leads")
-    .insert([payload]);
+    let selectedService = "";
 
-  if (error) {
-    alert(error.message);
-    console.error(error);
-    return;
-  }
-
-  await emailjs.send(
-  "service_eleviaai_outlook",
-    "template_t0bdvcu",
-    {
-      name,
-      email,
-      service: selectedService || "N/A",
-      phone,
-      intention
+    function isDuplicateError(error){
+      if (!error) return false;
+      if (error.code === "23505") return true;
+      const msg = (error.message || "").toLowerCase();
+      return msg.includes("duplicate key") || msg.includes("unique constraint");
     }
-  );
 
-  alert("Thank you! We’ll reach out to you shortly.");
-  closeLeadForm();
-}
-</script>
+    function getSavedUser(){
+      return {
+        name: localStorage.getItem("userName") || "",
+        email: localStorage.getItem("userEmail") || ""
+      };
+    }
 
+    // -------- LEAD MODAL --------
+    function openLeadForm(service){
+      selectedService = service;
+      document.getElementById("leadTitle").innerText = `Request for: ${service}`;
+
+      // Prefill if available
+      const saved = getSavedUser();
+      if (!document.getElementById("leadName").value) document.getElementById("leadName").value = saved.name;
+      if (!document.getElementById("leadEmail").value) document.getElementById("leadEmail").value = saved.email;
+
+      document.getElementById("leadModal").style.display = "flex";
+    }
+    function closeLeadForm(){
+      document.getElementById("leadModal").style.display = "none";
+    }
+
+    async function submitLead(){
+      const name = document.getElementById("leadName").value.trim();
+      const email = document.getElementById("leadEmail").value.trim();
+      const phone = document.getElementById("leadPhone").value.trim() || "N/A";
+      const address = document.getElementById("leadAddress").value.trim() || null;
+      const intention = document.getElementById("leadIntention").value.trim() || "N/A";
+      const notes = document.getElementById("leadNotes").value.trim() || null;
+
+      if (!name || !email){
+        alert("Name and email are required.");
+        return;
+      }
+
+      const payload = { name, email, phone, address, intention, notes, source_title: selectedService || null };
+
+      const { error } = await client.from("Consulting_Leads").insert([payload]);
+      if (error){
+        if (isDuplicateError(error)){
+          alert("You’ve already submitted a request for this service using this email.");
+          return;
+        }
+        alert(error.message);
+        console.error("Supabase insert error (Consulting_Leads):", error);
+        return;
+      }
+
+      try{
+        await emailjs.send(
+          "service_eleviaai_outlook",
+          "template_t0bdvcu",
+          { name, email, service: selectedService || "N/A", phone, intention }
+        );
+      }catch(e){
+        console.warn("EmailJS failed (lead). Not blocking user.", e);
+      }
+
+      alert("Thank you! We’ll reach out to you shortly.");
+      closeLeadForm();
+
+      // reset optional fields
+      document.getElementById("leadPhone").value = "";
+      document.getElementById("leadAddress").value = "";
+      document.getElementById("leadIntention").value = "";
+      document.getElementById("leadNotes").value = "";
+    }
+
+    // -------- COACH MODAL --------
+    function openCoachForm(){
+      const saved = getSavedUser();
+      if (!document.getElementById("coachName").value) document.getElementById("coachName").value = saved.name;
+      if (!document.getElementById("coachEmail").value) document.getElementById("coachEmail").value = saved.email;
+
+      document.getElementById("coachModal").style.display = "flex";
+    }
+    function closeCoachForm(){
+      document.getElementById("coachModal").style.display = "none";
+    }
+
+    async function submitCoach(){
+      const name = document.getElementById("coachName").value.trim();
+      const email = document.getElementById("coachEmail").value.trim();
+      const phone = document.getElementById("coachPhone").value.trim() || "N/A";
+      const city = document.getElementById("coachCity").value.trim() || null;
+      const specialty = document.getElementById("coachSpecialty").value.trim() || null;
+      const experience_years = document.getElementById("coachExperience").value.trim() || null;
+      const website = document.getElementById("coachWebsite").value.trim() || null;
+      const bio = document.getElementById("coachBio").value.trim() || null;
+
+      const accepted_tnc = document.getElementById("coachTnc").checked;
+      if (!name || !email){
+        alert("Name and email are required.");
+        return;
+      }
+      if (!accepted_tnc){
+        alert("Please accept the Terms & Conditions to continue.");
+        return;
+      }
+
+      const payload = {
+        name, email, phone, city, specialty, experience_years, website, bio,
+        accepted_tnc: true,
+        accepted_tnc_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        source: "partner_signup"
+      };
+
+      const { error } = await client.from("Coach_Partners").insert([payload]);
+      if (error){
+        if (isDuplicateError(error)){
+          alert("You’ve already submitted an application with this email. We’ll reach out soon.");
+          return;
+        }
+        alert(error.message);
+        console.error("Supabase insert error (Coach_Partners):", error);
+        return;
+      }
+
+      try{
+        await emailjs.send(
+          "service_eleviaai_outlook",
+          "template_t0bdvcu",
+          { name, email, service: "Coach/Partner Signup", phone, intention: specialty || "N/A" }
+        );
+      }catch(e){
+        console.warn("EmailJS failed (coach). Not blocking user.", e);
+      }
+
+      alert("Thanks! Your application has been submitted.");
+      closeCoachForm();
+
+      // reset optional fields
+      document.getElementById("coachPhone").value = "";
+      document.getElementById("coachCity").value = "";
+      document.getElementById("coachSpecialty").value = "";
+      document.getElementById("coachExperience").value = "";
+      document.getElementById("coachWebsite").value = "";
+      document.getElementById("coachBio").value = "";
+      document.getElementById("coachTnc").checked = false;
+    }
+
+    // UX: close on ESC + click outside
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeLeadForm();
+        closeCoachForm();
+      }
+    });
+
+    document.getElementById("leadModal").addEventListener("click", (e) => {
+      if (e.target.id === "leadModal") closeLeadForm();
+    });
+
+    document.getElementById("coachModal").addEventListener("click", (e) => {
+      if (e.target.id === "coachModal") closeCoachForm();
+    });
+  </script>
 </body>
 </html>
