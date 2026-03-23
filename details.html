@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
- <span class="beta-badge">BETA</span>
   <title>Elevia AI — Premium Services</title>
   <link rel="stylesheet" href="style.css">
 
@@ -79,7 +78,7 @@
 
 /* Textarea height */
 .details-box textarea{
-  min-height: 120px;
+  min-height: 100px;
   resize: vertical;
 }
 
@@ -166,6 +165,34 @@
 .modal-x:hover{ background: #f3f4f6; }
 .modal-x:active{ transform: translateY(1px); }
 
+/* ===== Elevia AI BETA inline wordmark ===== */
+
+.site-title-wordmark {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2a3d66;
+  letter-spacing: -0.5px;
+  display: inline-flex;
+  align-items: center; /* key for inline BETA alignment */
+line-height: 1;
+}
+
+.beta-inline {
+  margin-left: 6px;
+  font-size: 1.0rem;
+  font-weight: 480;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #000000;
+  opacity: 1.0;
+}
+
+
+.site-header{
+margin: 0;                /* no extra margins on header */
+  padding: 18px 10px 0px;   /* top/right-left/bottom -> reduce bottom to tighten */
+}
+
 /* SLA text */
 .sla-text{
   margin-top: 14px;
@@ -182,8 +209,7 @@ margin-bottom: 10px
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 40px;
-      row-gap: 7
-0px;
+      row-gap: 40px;
       margin-top: 40px;
       margin-bottom: 32px;
       justify-items: center;
@@ -290,9 +316,14 @@ max-height: 95vh;     /* keeps it inside viewport */
 </head>
 
 <body>
+ 
+ <!-- Header -->
   <header class="site-header">
-    <h1 class="site-title">Elevia AI</h1>
-  </header>
+  <h1 class="site-title-wordmark">
+    Elevia AI<span class="beta-inline">BETA</span>
+  </h1>
+</header>
+ 
 
   <main class="main-center">
     <section class="intro-section">
@@ -405,6 +436,16 @@ max-height: 95vh;     /* keeps it inside viewport */
       <button class="details-btn secondary" onclick="closeCoachForm()">Cancel</button>
     </div>
   </div>
+
+<script>
+  // Auto-open Coach form if user arrived with #coach in the URL
+  window.addEventListener('load', () => {
+    if (location.hash && location.hash.toLowerCase().includes('coach')) {
+      // small delay ensures DOM/styles are ready
+      setTimeout(() => { if (typeof openCoachForm === 'function') openCoachForm(); }, 50);
+    }
+  });
+</script>
 
   <!-- EmailJS -->
   <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
