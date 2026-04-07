@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Elevia AI — Our Coaches</title>
+
+  <!-- Styles -->
+  style.css
+
+  <!-- Supabase -->
+  https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2script>
+
+  <!-- EmailJS -->
+  https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.jsscript>
+
+  <style>
+    .container{
+      max-width:1100px;
+      margin:0 auto;
+      padding:0 16px;
+      text-align:left;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:20px;
+      margin-top:24px;
+    }
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:600px){.grid{grid-template-columns:1fr;}}
+
+    .coach-card{
+      background:#fff;
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 10px 28px rgba(0,0,0,0.08);
+      display:flex;
+      gap:12px;
+    }
+
+    .photo{
+      width:72px;
+      height:72px;
+      border-radius:16px;
+      object-fit:cover;
+      background:#f3f4f6;
+      border:1px solid #e5e7eb;
+    }
+
+    .name{margin:0;font-size:1.1rem;font-weight:900;color:#111827;}
+    .spec{margin-top:6px;color:#4f46e5;font-weight:800;font-size:.9rem;}
+    .bio{margin-top:6px;font-size:.9rem;color:#6b7280;line-height:1.3;}
+
+    .btn{
+      margin-top:10px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:none;
+      background:linear-gradient(90deg,#6366f1,#4f46e5);
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    /* Modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(17,24,39,0.55);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      padding:16px;
+      z-index:1000;
+    }
+    .modal{
+      width:100%;
+      max-width:560px;
+      background:#fff;
+      border-radius:18px;
+      padding:18px;
+      text-align:left;
+      position:relative;
+      box-shadow:0 24px 70px rgba(0,0,0,0.25);
+    }
+    .close{
+      position:absolute;
+      top:12px;
+      right:12px;
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      cursor:pointer;
+      font-size:20px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:10px;
+    }
+    @media(max-width:640px){.row{grid-template-columns:1fr;}}
+
+    label{font-weight:800;color:#2a3d66;font-size:.9rem;}
+    input,textarea{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      margin-top:4px;
+      box-sizing:border-box;
+    }
+
+    .msg{margin-top:10px;font-size:.9rem;color:#6b7280;}
+  </style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <h1 class="site-title">Elevia AI</h1>
+</header>
+
+<main class="main-center">
+  <div class="container">
+    <h2>Our Coaches</h2>
+    <p>Select a coach and request a session.</p>
+
+    <div id="loading" class="msg">Loading coaches…</div>
+    <div id="grid" class="grid"></div>
+  </div>
+</main>
+
+<footer class="site-footer">© 2025 Elevia AI</footer>
+
+<!-- Booking Modal -->
+<div id="overlay" class="overlay">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">✕</button>
+
+    <h3>Book a Session</h3>
+    <p id="coachLabel" class="msg"></p>
+
+    <div class="row">
+      <div>
+        <label>Your Name *</label>
+        <input id="clientName">
+      </div>
+      <div>
+        <label>Your Email *</label>
+        <input id="clientEmail">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Date</label>
+        <input type="date" id="sessionDate">
+      </div>
+      <div>
+        <label>Time</label>
+        <input id="sessionTime" placeholder="e.g. 7 PM IST">
+      </div>
+    </div>
+
+    <div>
+      <label>Location</label>
+      <input id="location" placeholder="Online / City">
+    </div>
+
+    <div>
+      <label>Notes</label>
+      <textarea id="notes" rows="3"></textarea>
+    </div>
+
+    <button class="btn" style="width:100%;margin-top:12px;" onclick="submitBooking()">Submit</button>
+    <div id="msg" class="msg"></div>
+  </div>
+</div>
+
+<script>
+  emailjs.init("uoIEERvWpk3Oh20kI");
+
+  const supabase = supabase.createClient(
+    "YOUR_SUPABASE_URL",
+    "YOUR_SUPABASE_ANON_KEY"
+  );
+
+  let selectedCoach = null;
+
+  function noPhoto(){
+    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Crect width='72' height='72' fill='%23f3f4f6'/%3E%3C/svg%3E";
+  }
+
+  async function loadCoaches(){
+    const {data,error} = await supabase
+      .from("Coach_Partners")
+      .select("id,display_name,specialty,bio,photo_url,email");
+
+    document.getElementById("loading").style.display="none";
+
+    if(error){alert(error.message);return;}
+
+    const grid=document.getElementById("grid");
+    grid.innerHTML="";
+
+    data.forEach(c=>{
+      const d=document.createElement("div");
+      d.className="coach-card";
+      d.innerHTML=`
+        <img class="photo" src="${c.photo_url||noPhoto()} <div class="name">${c.display_name}</div>
+          <div class="spec">${c.specialty||""}</div>
+          <div class="bio">${(c.bio||"").slice(0,120)}</div>
+          <button class="btn">Book Session</button>
+        </div>`;
+      d.querySelector(".btn").onclick=()=>openModal(c);
+      grid.appendChild(d);
+    });
+  }
+
+  function openModal(c){
+    selectedCoach=c;
+    document.getElementById("coachLabel").innerText =
+      "Coach: " + c.display_name + " (" + c.email + ")";
+    document.getElementById("overlay").style.display="flex";
+  }
+  function closeModal(){
+    document.getElementById("overlay").style.display="none";
+  }
+
+  async function submitBooking(){
+    const name=document.getElementById("clientName").value.trim();
+    const email=document.getElementById("clientEmail").value.trim();
+    if(!name||!email){setMsg("Name and email required");return;}
+
+    const payload={
+      coach_id:selectedCoach.id,
+      coach_email:selectedCoach.email,
+      coach_name:selectedCoach.display_name,
+      client_name:name,
+      client_email:email,
+      session_date:document.getElementById("sessionDate").value||null,
+      session_time:document.getElementById("sessionTime").value||null,
+      location:document.getElementById("location").value||null,
+      notes:document.getElementById("notes").value||null
+    };
+
+    const {error}=await supabase.from("Coach_Bookings").insert([payload]);
+    if(error){setMsg(error.message);return;}
+
+    // Coach email
+    await emailjs.send("service_eleviaai_outlook","template_coach_booking",{
+      to_email:selectedCoach.email,
+      coach_name:selectedCoach.display_name,
+      client_name:name,
+      client_email:email,
+      date:payload.session_date,
+      time:payload.session_time,
+      location:payload.location,
+      notes:payload.notes
+    });
+
+    // Client email
+    await emailjs.send("service_eleviaai_outlook","template_client_confirmation",{
+      to_email:email,
+      coach_name:selectedCoach.display_name,
+      date:payload.session_date,
+      time:payload.session_time,
+      location:payload.location
+    });
+
+    setMsg("✅ Booking sent! You will receive a confirmation email.");
+    setTimeout(closeModal,1000);
+  }
+
+  function setMsg(t){document.getElementById("msg").innerText=t;}
+
+  loadCoaches();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Coach Portal — Elevia AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  .box{
+    max-width:900px;
+    margin:30px auto;
+    background:#fff;
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.1);
+  }
+  .booking{
+    border:1px solid #eee;
+    border-radius:14px;
+    padding:12px;
+    margin-top:12px;
+  }
+</style>
+</head>
+
+<body>
+<header class="site-header">
+  <h1 class="site-title">Elevia AI</h1>
+</header>
+
+<div class="box">
+  <h2>My Bookings</h2>
+  <p class="small">These are your client booking requests.</p>
+  <div id="list"></div>
+</div>
+
+<script>
+const supabase = supabase.createClient(
+  "YOUR_SUPABASE_URL",
+  "YOUR_ANON_KEY"
+);
+
+async function load(){
+  const { data: session } = await supabase.auth.getSession();
+  if(!session.session){
+    location.href="coach-login.html";
+    return;
+  }
+
+  const email=session.session.user.email;
+
+  const {data} = await supabase
+    .from("Coach_Bookings")
+    .select("*")
+    .eq("coach_email",email)
+    .order("created_at",{ascending:false});
+
+  document.getElementById("list").innerHTML =
+    (data||[]).map(b=>`
+      <div class="booking">
+        <b>${b.client_name}</b> (${b.client_email})<br>
+        📅 ${b.session_date||""} ⏰ ${b.session_time||""}<br>
+        📍 ${b.location||""}<br>
+        📝 ${b.notes||""}<br>
+        <select onchange="updateStatus('${b.id}',this.value)">
+          ${["new","contacted","confirmed","completed"].map(s=>
+            `<option ${b.status===s?"selected":""}>${s}</option>`).join("")}
+        </select>
+      </div>
+    `).join("");
+}
+
+async function updateStatus(id,status){
+  await supabase.from("Coach_Bookings")
+    .update({status})
+    .eq("id",id);
+  load();
+}
+
+load();
+</script>
+</body>
+</html>
