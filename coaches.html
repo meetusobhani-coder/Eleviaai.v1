@@ -7,117 +7,106 @@
 
   <link rel="stylesheet" href="style.css">
 
-  <!-- External scripts -->
+  <!-- External JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app2.js"></script>
 
   <style>
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px; text-align: left; }
-    .grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 18px; }
-    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2,1fr); } }
-    @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+    .wrap{max-width:1100px;margin:0 auto;padding:24px 16px;}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:18px;}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:620px){.grid{grid-template-columns:1fr;}}
 
-    .card { background:#fff; border-radius:18px; padding:16px; box-shadow:0 10px 28px rgba(0,0,0,0.08); }
-    .top { display:flex; gap:12px; align-items:flex-start; }
-    .photo { width:72px; height:72px; border-radius:16px; object-fit:cover; border:1px solid #e5e7eb; background:#f3f4f6; }
-    .name { margin:0; font-weight:900; color:#111827; font-size:1.1rem; }
-    .spec { margin-top:6px; color:#4f46e5; font-weight:800; font-size:.9rem; }
-    .bio { margin-top:6px; color:#6b7280; font-size:.92rem; line-height:1.35; }
-    .muted { color:#6b7280; font-size:.92rem; }
+    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,0.08);}
+    .top{display:flex;gap:12px;}
+    .photo{width:72px;height:72px;border-radius:50%;object-fit:cover;}
+    .name{font-weight:900;font-size:1.1rem;color:#111827;margin:0;}
+    .tag{display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:700;}
+    .bio{margin-top:6px;color:#4b5563;font-size:.9rem;line-height:1.4;
+         display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .email{font-size:.8rem;color:#9ca3af;margin-top:4px;}
   </style>
 </head>
 
 <body>
-<header class="site-header">
-  <h1 class="site-title">Elevia AI</h1>
-</header>
+<header><h1>Elevia AI</h1></header>
 
-<main class="main-center">
+<main>
   <div class="wrap">
     <h2>Approved Coaches</h2>
-    <p class="muted">Listing coaches approved in Supabase.</p>
-    <div id="status" class="muted">Loading…</div>
+    <p>Browse our approved coaches.</p>
+
+    <div id="status">Loading…</div>
     <div id="grid" class="grid"></div>
   </div>
 </main>
 
-<footer class="site-footer">
-  <p>© 2025 Elevia AI</p>
-</footer>
+<footer>© 2025 Elevia AI</footer>
 
 <script>
-async function loadCoaches() {
-  const statusEl = document.getElementById("status");
+async function loadCoaches(){
+  const status = document.getElementById("status");
   const grid = document.getElementById("grid");
 
-  try {
-    const sb = window.APP.getSB();
+  const sb = window.APP.getSB();
 
-    const result = await sb
-      .from("Coach_Partners")
-      .select("email, display_name, specialty, bio, photo_url")
-      .order("display_name", { ascending: true });
+  const { data, error } = await sb
+    .from("Coach_Partners")
+    .select("email, display_name, specialty, bio, photo_url")
+    .order("display_name");
 
-    if (result.error) {
-      statusEl.textContent = "ERROR: " + result.error.message;
-      return;
-    }
-
-    const data = result.data;
-
-    if (!data || data.length === 0) {
-      statusEl.textContent = "No approved coaches found.";
-      return;
-    }
-
-    statusEl.textContent = "Showing " + data.length + " coach(es)";
-    grid.innerHTML = "";
-
-    data.forEach(c => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      const top = document.createElement("div");
-      top.className = "top";
-
-      const img = document.createElement("img");
-      img.className = "photo";
-      img.src = c.photo_url || window.APP.noPhoto();
-      img.alt = "Coach photo";
-
-      const info = document.createElement("div");
-
-      const name = document.createElement("h3");
-      name.className = "name";
-      name.textContent = c.display_name || c.email || "Coach";
-
-      const spec = document.createElement("div");
-      spec.className = "spec";
-      spec.textContent = c.specialty || "";
-
-      const bio = document.createElement("div");
-      bio.className = "bio";
-      bio.textContent = (c.bio || "").slice(0,140);
-
-      const email = document.createElement("div");
-      email.className = "muted";
-      email.textContent = c.email || "";
-
-      info.appendChild(name);
-      info.appendChild(spec);
-      info.appendChild(bio);
-      info.appendChild(email);
-
-      top.appendChild(img);
-      top.appendChild(info);
-      card.appendChild(top);
-      grid.appendChild(card);
-    });
-
-  } catch (e) {
-    statusEl.textContent = "JS ERROR: " + e.message;
-    console.error(e);
+  if (error) {
+    status.textContent = error.message;
+    return;
   }
+
+  if (!data.length) {
+    status.textContent = "No coaches found.";
+    return;
+  }
+
+  status.textContent = `Showing ${data.length} coaches`;
+  grid.innerHTML = "";
+
+  data.forEach(c => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.className = "photo";
+    img.src = c.photo_url || window.APP.noPhoto();
+
+    const info = document.createElement("div");
+
+    const name = document.createElement("h3");
+    name.className = "name";
+    name.textContent = c.display_name || "Coach";
+
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = c.specialty || "Coach";
+
+    const bio = document.createElement("div");
+    bio.className = "bio";
+    bio.textContent = c.bio || "Profile coming soon.";
+
+    const email = document.createElement("div");
+    email.className = "email";
+    email.textContent = c.email;
+
+    info.appendChild(name);
+    info.appendChild(tag);
+    info.appendChild(bio);
+    info.appendChild(email);
+
+    const top = document.createElement("div");
+    top.className = "top";
+    top.appendChild(img);
+    top.appendChild(info);
+
+    card.appendChild(top);
+    grid.appendChild(card);
+  });
 }
 
 window.addEventListener("load", loadCoaches);
