@@ -1,32 +1,23 @@
-// app2.js — shared Supabase config (clean)
+// app2.js
 
 window.APP = {};
 
 window.APP.SUPABASE_URL = "https://dvvktlngsiqerhsikfna.supabase.co";
-window.APP.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmt0bG5nc2lxZXJoc2lrZm5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTI5ODksImV4cCI6MjA3ODQyODk4OX0.IGIeZLmEWwUsof-Fj_vIAHhhlvIFN-yjVjHsJHluBcM"; // ✅ replace
+window.APP.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2dmt0bG5nc2lxZXJoc2lrZm5hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI4NTI5ODksImV4cCI6MjA3ODQyODk4OX0.IGIeZLmEWwUsof-Fj_vIAHhhlvIFN-yjVjHsJHluBcM";
 
 window.APP.getSB = function () {
   if (window.APP._sb) return window.APP._sb;
-
-  if (!window.supabase) {
-    throw new Error("Supabase library not loaded");
-  }
-
   window.APP._sb = window.supabase.createClient(
     window.APP.SUPABASE_URL,
     window.APP.SUPABASE_ANON_KEY
   );
-
   return window.APP._sb;
 };
 
-window.APP.escapeHtml = function (str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+window.APP.escapeHtml = function (s) {
+  return String(s || "").replace(/[&<>"']/g, m =>
+    ({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m])
+  );
 };
 
 window.APP.noPhoto = function () {

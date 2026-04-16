@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Elevia AI — Coaches</title>
 
-  <link rel="stylesheet" href="style.css">
-
-  <!-- ✅ SCRIPT ORDER IS CRITICAL -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app2.js"></script>
+  <link rel="stylesheet" href="style.csscripts -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2script src="app2.js"></script>
 
   <style>
     .wrap{max-width:1100px;margin:0 auto;padding:24px 16px;text-align:left;}
@@ -27,25 +24,24 @@
 </head>
 
 <body>
-  <header class="site-header">
-    <h1 class="site-title">Elevia AI</h1>
-  </header>
+<header class="site-header">
+  <h1 class="site-title">Elevia AI</h1>
+</header>
 
-  <main class="main-center">
-    <div class="wrap">
-      <h2>Approved Coaches</h2>
-      <p class="muted">Listing coaches approved in Supabase.</p>
+<main class="main-center">
+  <div class="wrap">
+    <h2>Approved Coaches</h2>
+    <p class="muted">Listing coaches approved in Supabase.</p>
+    <div id="status" class="muted">Loading…</div>
+    <div id="grid" class="grid"></div>
+  </div>
+</main>
 
-      <div id="status" class="muted">Loading…</div>
-      <div id="grid" class="grid"></div>
-    </div>
-  </main>
+<footer class="site-footer">
+  <p>© 2025 Elevia AI</p>
+</footer>
 
-  <footer class="site-footer">
-    <p>© 2025 Elevia AI</p>
-  </footer>
-
-  <script>
+<!-- ✅ Only JavaScript below -->
 <script>
   async function loadCoaches() {
     const statusEl = document.getElementById("status");
@@ -71,40 +67,29 @@
 
       data.forEach(c => {
         const name = c.display_name || c.email || "Coach";
-        const specialty = c.specialty || "";
         const bio = c.bio || "";
-        const photo = c.photo_url || window.APP.noPhoto();
 
         const div = document.createElement("div");
         div.className = "card";
-
         div.innerHTML = `
           <div class="top">
-            <img class="photo" src="${photo}" alt="Coach photo       <h3 class="name">${window.APP.escapeHtml(name)}</h3>
-              <div class="spec">${window.APP.escapeHtml(specialty)}</div>
-              <div class="bio">
-                ${window.APP.escapeHtml(bio.slice(0, 140))}
-                ${bio.length > 140 ? "…" : ""}
-              </div>
-              <div class="muted" style="margin-top:8px;">
-                ${window.APP.escapeHtml(c.email)}
-              </div>
+            <img class="photo" src="${c.photo_url || window.APP.noPhotoame">${window.APP.escapeHtml(name)}</h3>
+              <div class="spec">${window.APP.escapeHtml(c.specialty || "")}</div>
+              <div class="bio">${window.APP.escapeHtml(bio.slice(0,140))}${bio.length > 140 ? "…" : ""}</div>
+              <div class="muted">${window.APP.escapeHtml(c.email)}</div>
             </div>
           </div>
         `;
-
         grid.appendChild(div);
       });
 
     } catch (e) {
-      statusEl.textContent = "JS ERROR: " + e.message;
+      statusEl.textContent = "ERROR: " + e.message;
       console.error(e);
     }
   }
 
   window.addEventListener("load", loadCoaches);
 </script>
-
-  </script>
 </body>
 </html>
