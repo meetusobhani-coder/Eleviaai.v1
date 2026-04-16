@@ -46,56 +46,65 @@
   </footer>
 
   <script>
-    async function loadCoaches() {
-      const statusEl = document.getElementById("status");
-      const grid = document.getElementById("grid");
+<script>
+  async function loadCoaches() {
+    const statusEl = document.getElementById("status");
+    const grid = document.getElementById("grid");
 
-      try {
-        console.log("Supabase:", typeof window.supabase);
-        console.log("APP:", window.APP);
+    try {
+      const sb = window.APP.getSB();
 
-        const sb = window.APP.getSB();
+      const { data, error } = await sb
+        .from("Coach_Partners")
+        .select("email, display_name, specialty, bio, photo_url")
+        .order("display_name", { ascending: true });
 
-        const { data, error } = await sb
-          .from("Coach_Partners")
-          .select("email, display_name, specialty, bio, photo_url")
-          .order("display_name", { ascending: true });
+      if (error) throw error;
 
-        if (error) {
-          statusEl.textContent = "ERROR: " + error.message;
-          return;
-        }
+      if (!data || data.length === 0) {
+        statusEl.textContent = "No approved coaches found.";
+        return;
+      }
 
-        if (!data || data.length === 0) {
-          statusEl.textContent = "No approved coaches found.";
-          return;
-        }
+      statusEl.textContent = `Showing ${data.length} coach(es).`;
+      grid.innerHTML = "";
 
-        statusEl.textContent = `Showing ${data.length} coach(es).`;
-        grid.innerHTML = "";
+      data.forEach(c => {
+        const name = c.display_name || c.email || "Coach";
+        const specialty = c.specialty || "";
+        const bio = c.bio || "";
+        const photo = c.photo_url || window.APP.noPhoto();
 
-        data.forEach(c => {
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = `
-            <div class="top">
-              <img class="photo" src="${c.photo_url || window.APP.noPhoto()eHtml(c.display_name || c.email)}</h3>
-                <div class="spec">${window.APP.escapeHtml(c.specialty || "")}</div>
-                <div class="bio">${window.APP.escapeHtml((c.bio || "").slice(0,140))}</div>
-                <div class="muted">${window.APP.escapeHtml(c.email)}</div>
+        const div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+          <div class="top">
+            <img class="photo" src="${photo}" alt="Coach photo       <h3 class="name">${window.APP.escapeHtml(name)}</h3>
+              <div class="spec">${window.APP.escapeHtml(specialty)}</div>
+              <div class="bio">
+                ${window.APP.escapeHtml(bio.slice(0, 140))}
+                ${bio.length > 140 ? "…" : ""}
+              </div>
+              <div class="muted" style="margin-top:8px;">
+                ${window.APP.escapeHtml(c.email)}
               </div>
             </div>
-          `;
-          grid.appendChild(div);
-        });
+          </div>
+        `;
 
-      } catch (e) {
-        statusEl.textContent = "JS ERROR: " + e.message;
-        console.error(e);
-      }
+        grid.appendChild(div);
+      });
+
+    } catch (e) {
+      statusEl.textContent = "JS ERROR: " + e.message;
+      console.error(e);
     }
+  }
 
-    window.addEventListener("load", loadCoaches);
+  window.addEventListener("load", loadCoaches);
+</script>
+
   </script>
 </body>
 </html>
