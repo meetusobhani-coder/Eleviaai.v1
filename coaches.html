@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Elevia AI — Coaches</title>
 
+
   <link rel="stylesheet" href="style.css">
 
-  <!-- External JS -->
+  <!-- External scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app2.js"></script>
 
@@ -17,14 +18,19 @@
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr);}}
     @media(max-width:620px){.grid{grid-template-columns:1fr;}}
 
-    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,0.08);}
+    .card{background:#fff;border-radius:18px;padding:16px;box-shadow:0 10px 28px rgba(0,0,0,0.08);transition:.2s;}
+    .card:hover{transform:translateY(-4px);box-shadow:0 16px 36px rgba(0,0,0,.12);}
     .top{display:flex;gap:12px;}
+
     .photo{width:72px;height:72px;border-radius:50%;object-fit:cover;}
-    .name{font-weight:900;font-size:1.1rem;color:#111827;margin:0;}
+    .name{font-weight:900;font-size:1.1rem;margin:0;color:#111827;}
     .tag{display:inline-block;background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:700;}
-    .bio{margin-top:6px;color:#4b5563;font-size:.9rem;line-height:1.4;
-         display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-    .email{font-size:.8rem;color:#9ca3af;margin-top:4px;}
+    .bio{
+      margin-top:6px;
+      color:#4b5563;
+      font-size:.9rem;
+      line-height:1.4;
+    }
   </style>
 </head>
 
@@ -34,26 +40,23 @@
 <main>
   <div class="wrap">
     <h2>Approved Coaches</h2>
-    <p>Browse our approved coaches.</p>
+    <p>Browse our verified coaches and find the right support.</p>
 
     <div id="status">Loading…</div>
     <div id="grid" class="grid"></div>
   </div>
 </main>
 
-<footer>© 2025 Elevia AI</footer>
-
 <script>
 async function loadCoaches(){
+  const sb = window.APP.getSB();
   const status = document.getElementById("status");
   const grid = document.getElementById("grid");
 
-  const sb = window.APP.getSB();
-
   const { data, error } = await sb
     .from("Coach_Partners")
-    .select("email, display_name, specialty, bio, photo_url")
-    .order("display_name");
+    .select("name, specialty, bio, photo_url")
+    .order("name");
 
   if (error) {
     status.textContent = error.message;
@@ -61,7 +64,7 @@ async function loadCoaches(){
   }
 
   if (!data.length) {
-    status.textContent = "No coaches found.";
+    status.textContent = "No coaches available.";
     return;
   }
 
@@ -78,9 +81,17 @@ async function loadCoaches(){
 
     const info = document.createElement("div");
 
-    const name = document.createElement("h3");
-    name.className = "name";
-    name.textContent = c.display_name || "Coach";
+const name = document.createElement("h3");
+name.className = "name";
+
+const derivedName =
+  c.name && c.name.trim() !== ""
+    ? c.name
+    : (c.email ? c.email.split("@")[0].replace(/[._]/g, " ") : "");
+
+name.textContent = derivedName;
+
+name.textContent = derivedName;
 
     const tag = document.createElement("span");
     tag.className = "tag";
@@ -88,16 +99,19 @@ async function loadCoaches(){
 
     const bio = document.createElement("div");
     bio.className = "bio";
-    bio.textContent = c.bio || "Profile coming soon.";
+    let shortBio = "Profile coming soon.";
 
-    const email = document.createElement("div");
-    email.className = "email";
-    email.textContent = c.email;
+if (c.bio) {
+  const sentences = c.bio.split(".");
+  shortBio = sentences.slice(0, 2).join(".").trim();
+  if (!shortBio.endsWith(".")) shortBio += ".";
+}
+
+bio.textContent = shortBio;
 
     info.appendChild(name);
     info.appendChild(tag);
     info.appendChild(bio);
-    info.appendChild(email);
 
     const top = document.createElement("div");
     top.className = "top";
